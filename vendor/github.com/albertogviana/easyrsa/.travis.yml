@@ -1,0 +1,22 @@
+language: go
+
+go:
+  - 1.11.x
+
+dist: xenial
+
+# Only clone the most recent commit.
+git:
+  depth: 1
+
+# Don't email me the results of the test runs.
+notifications:
+  email:
+    - albertogviana@gmail.com
+
+before_script:
+  - make download-easyrsa
+  - make download-testify
+
+script:
+  -  make test

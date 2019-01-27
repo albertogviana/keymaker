@@ -49,6 +49,11 @@ func (c *Certificate) initialize() error {
 		return err
 	}
 
+	_, dhErr := os.Stat(path.Join(c.easyRSA.PKIDir, "dh.pem"))
+	if dhErr == nil {
+		return nil
+	}
+
 	err = c.easyRSA.GenDH()
 	if err != nil {
 		return err

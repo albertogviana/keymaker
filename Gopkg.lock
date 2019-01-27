@@ -5,7 +5,7 @@
   branch = "master"
   name = "github.com/albertogviana/easyrsa"
   packages = ["."]
-  revision = "e84ce1befb85a136a103bdcd7456b6f4acbade9a"
+  revision = "48ece515259ab53b1111633a72ef90222b779d54"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -32,6 +32,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d4e263eac65dfa16a63ee14faa161c919c43ab1ecc76a30bda912dfc31cfa41a"
+  inputs-digest = "220f6ea0bbf11483ce88e45b625b351c9246e049b353e18f7b7d1ed44fbf50c0"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -69,16 +69,6 @@ func (c *ServiceTestSuite) Test_NewCertificateCAAlreadyCreated() {
 	err = c.EasyRSA.BuildCA()
 	c.NoError(err)
 
-	errString := `Generating RSA private key, 2048 bit long modulus
-	...................+++
-	...............................................................+++
-	e is 65537 (0x010001)
-
-	Easy-RSA error:
-
-	Unable to create a CA as you already seem to have one set up.
-	If you intended to start a new CA, run init-pki first.`
-
 	_, err = NewCertificate(c.EasyRSA)
-	c.EqualError(err, errString)
+	c.NoError(err)
 }

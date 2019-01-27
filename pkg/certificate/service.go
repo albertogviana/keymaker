@@ -1,7 +1,13 @@
 package certificate
 
-import "github.com/albertogviana/easyrsa"
+import (
+	"os"
+	"path"
 
+	"github.com/albertogviana/easyrsa"
+)
+
+// Certificate has the configuration need to run easyrsa
 type Certificate struct {
 	*Config
 }
@@ -19,7 +25,7 @@ func NewCertificate(easyrsa *easyrsa.EasyRSA) (*Certificate, error) {
 		},
 	}
 
-	err := certificate.bootstrap()
+	err := certificate.initialize()
 	if err != nil {
 		return nil, err
 	}
@@ -27,10 +33,15 @@ func NewCertificate(easyrsa *easyrsa.EasyRSA) (*Certificate, error) {
 	return certificate, nil
 }
 
-func (c *Certificate) bootstrap() error {
+func (c *Certificate) initialize() error {
 	err := c.easyRSA.InitPKI()
 	if err != nil {
 		return err
+	}
+
+	_, caCertificateErr := os.Stat(path.Join(c.easyRSA.PKIDir, "ca.crt"))
+	if caCertificateErr == nil {
+		return nil
 	}
 
 	err = c.easyRSA.BuildCA()

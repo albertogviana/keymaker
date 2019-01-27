@@ -1,11 +1,14 @@
 package easyrsa
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path"
+	"regexp"
 )
 
 // EasyRSA struct
@@ -28,6 +31,8 @@ type Config struct {
 	Email            string
 	OrganizationUnit string
 }
+
+const errCAAlreadyExist = "Easy-RSA error:\n\nUnable to create a CA as you already seem to have one set up.\nIf you intended to start a new CA, run init-pki first.\n"
 
 // NewEasyRSA returns an instance of EasyRSA
 func NewEasyRSA(config Config) (*EasyRSA, error) {
@@ -65,7 +70,20 @@ func (e *EasyRSA) InitPKI() error {
 
 // BuildCA generates the Certificate Authority (CA)
 func (e *EasyRSA) BuildCA() error {
-	return e.run("build-ca", "nopass")
+	err := e.run("build-ca", "nopass")
+
+	if err == nil {
+		return nil
+	}
+
+	re := regexp.MustCompile("Easy-RSA error:(?s)(.*)")
+	regexResult := re.FindString(string(err.Error()))
+
+	if regexResult == errCAAlreadyExist {
+		return errors.New(errCAAlreadyExist)
+	}
+
+	return err
 }
 
 // GenReq generates a keypair and request
@@ -133,12 +151,32 @@ func (e *EasyRSA) getEnvironmentVariable() []string {
 func (e *EasyRSA) run(args ...string) error {
 	environment := e.getEnvironmentVariable()
 
+	var stderrBuf bytes.Buffer
+
 	cmd := exec.Command(path.Join(e.BinDir, "easyrsa"), args...)
 	cmd.Env = append(os.Environ(), environment...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 
-	return cmd.Run()
+	stderrIn, _ := cmd.StderrPipe()
+	stderr := io.MultiWriter(os.Stderr, &stderrBuf)
+
+	cmd.Stdout = os.Stdout
+
+	err := cmd.Start()
+	if err != nil {
+		return fmt.Errorf("cmd.Start() failed with '%s'", err)
+	}
+
+	go func() {
+		io.Copy(stderr, stderrIn)
+	}()
+
+	err = cmd.Wait()
+
+	if err == nil {
+		return nil
+	}
+
+	return errors.New(string(stderrBuf.Bytes()))
 }
 
 func validate(config Config) error {

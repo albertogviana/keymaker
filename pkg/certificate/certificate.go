@@ -49,5 +49,10 @@ func (c *Certificate) initialize() error {
 		return err
 	}
 
+	err = c.easyRSA.GenDH()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

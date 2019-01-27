@@ -44,7 +44,7 @@ func (c *ServiceTestSuite) SetupTest() {
 	c.PKIDir = dir
 }
 
-func (c *ServiceTestSuite) TearDownSuite() {
+func (c *ServiceTestSuite) TearDownTest() {
 	os.RemoveAll(c.PKIDir)
 }
 
@@ -59,6 +59,8 @@ func (c *ServiceTestSuite) Test_NewCertificate() {
 	c.NoError(err)
 	c.Equal(expectedCertificate, certificate)
 	_, err = os.Stat(path.Join(c.EasyRSA.PKIDir, "ca.crt"))
+	c.NoError(err)
+	_, err = os.Stat(path.Join(c.EasyRSA.PKIDir, "dh.pem"))
 	c.NoError(err)
 }
 

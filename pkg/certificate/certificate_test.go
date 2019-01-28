@@ -75,11 +75,11 @@ func (c *ServiceTestSuite) Test_NewCertificateCAAlreadyCreated() {
 	c.NoError(err)
 }
 
-func (c *ServiceTestSuite) Test_GenerateServerCertificate() {
+func (c *ServiceTestSuite) Test_GenerateCertificate_Server() {
 	certificate, err := NewCertificate(c.EasyRSA)
 	c.NoError(err)
 
-	err = certificate.GenerateServerCertificate("server")
+	err = certificate.GenerateCertificate(ServerTypeSign, "server")
 	c.NoError(err)
 
 	_, err = os.Stat(path.Join(c.EasyRSA.PKIDir, "private", "server.key"))
@@ -92,13 +92,49 @@ func (c *ServiceTestSuite) Test_GenerateServerCertificate() {
 	c.NoError(err)
 }
 
-func (c *ServiceTestSuite) Test_GenerateServerCertificate_AlreadyExists() {
+func (c *ServiceTestSuite) Test_GenerateCertificate_ServerAlreadyExists() {
 	certificate, err := NewCertificate(c.EasyRSA)
 	c.NoError(err)
 
-	err = certificate.GenerateServerCertificate("server")
+	err = certificate.GenerateCertificate(ServerTypeSign, "server")
 	c.NoError(err)
 
-	err = certificate.GenerateServerCertificate("server")
+	err = certificate.GenerateCertificate(ServerTypeSign, "server")
 	c.EqualError(err, "server server certificate already exists")
+}
+
+func (c *ServiceTestSuite) Test_GenerateCertificate_Client() {
+	certificate, err := NewCertificate(c.EasyRSA)
+	c.NoError(err)
+
+	err = certificate.GenerateCertificate(ClientTypeSign, "client")
+	c.NoError(err)
+
+	_, err = os.Stat(path.Join(c.EasyRSA.PKIDir, "private", "client.key"))
+	c.NoError(err)
+
+	_, err = os.Stat(path.Join(c.EasyRSA.PKIDir, "reqs", "client.req"))
+	c.NoError(err)
+
+	_, err = os.Stat(path.Join(c.EasyRSA.PKIDir, "issued", "client.crt"))
+	c.NoError(err)
+}
+
+func (c *ServiceTestSuite) Test_GenerateCertificate_ClientAlreadyExists() {
+	certificate, err := NewCertificate(c.EasyRSA)
+	c.NoError(err)
+
+	err = certificate.GenerateCertificate(ClientTypeSign, "client")
+	c.NoError(err)
+
+	err = certificate.GenerateCertificate(ClientTypeSign, "client")
+	c.EqualError(err, "client client certificate already exists")
+}
+
+func (c *ServiceTestSuite) Test_GenerateCertificate_InvalidTypeSign() {
+	certificate, err := NewCertificate(c.EasyRSA)
+	c.NoError(err)
+
+	err = certificate.GenerateCertificate("invalid", "client")
+	c.EqualError(err, "invalid type, please use server or client")
 }

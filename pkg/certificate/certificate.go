@@ -1,6 +1,7 @@
 package certificate
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -17,6 +18,9 @@ type Certificate struct {
 type Config struct {
 	easyRSA *easyrsa.EasyRSA
 }
+
+const ServerTypeSign = "server"
+const ClientTypeSign = "client"
 
 // NewCertificate returns a new instance of Certificate
 func NewCertificate(easyrsa *easyrsa.EasyRSA) (*Certificate, error) {
@@ -63,24 +67,20 @@ func (c *Certificate) initialize() error {
 	return nil
 }
 
-// GenerateServerCertificate creates the server certificate and key
-func (c *Certificate) GenerateServerCertificate(requestName string) error {
+// GenerateCertificate creates server or client certificate and key
+func (c *Certificate) GenerateCertificate(typeSign, requestName string) error {
+	if typeSign != ServerTypeSign && typeSign != ClientTypeSign {
+		return errors.New("invalid type, please use server or client")
+	}
+
 	_, errPrivate := os.Stat(path.Join(c.easyRSA.PKIDir, "private", fmt.Sprintf("%s.key", requestName)))
 	_, errReqs := os.Stat(path.Join(c.easyRSA.PKIDir, "reqs", fmt.Sprintf("%s.req", requestName)))
+	_, errCrt := os.Stat(path.Join(c.easyRSA.PKIDir, "issued", fmt.Sprintf("%s.crt", requestName)))
 
-	if errPrivate == nil && errReqs == nil {
-		return fmt.Errorf("%s server certificate already exists", requestName)
+	if errPrivate == nil && errReqs == nil && errCrt == nil {
+		return fmt.Errorf("%s %s certificate already exists", requestName, typeSign)
 	}
 
-	err := c.requestAndSign("server", requestName)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *Certificate) requestAndSign(typeSign, requestName string) error {
 	err := c.easyRSA.GenReq(requestName)
 	if err != nil {
 		return err

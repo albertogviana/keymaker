@@ -1,6 +1,7 @@
 package certificate
 
 import (
+	"fmt"
 	"os"
 	"path"
 
@@ -55,6 +56,22 @@ func (c *Certificate) initialize() error {
 	}
 
 	err = c.easyRSA.GenDH()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Certificate) GenerateServerCertificate(requestName string) error {
+	_, errPrivate := os.Stat(path.Join(c.easyRSA.PKIDir, "private", fmt.Sprintf("%s.key", requestName)))
+	_, errReqs := os.Stat(path.Join(c.easyRSA.PKIDir, "reqs", fmt.Sprintf("%s.req", requestName)))
+
+	if errPrivate == nil && errReqs == nil {
+		return fmt.Errorf("%s server certificate already exists", requestName)
+	}
+
+	err := c.easyRSA.GenReq(requestName)
 	if err != nil {
 		return err
 	}

@@ -74,3 +74,28 @@ func (c *ServiceTestSuite) Test_NewCertificateCAAlreadyCreated() {
 	_, err = NewCertificate(c.EasyRSA)
 	c.NoError(err)
 }
+
+func (c *ServiceTestSuite) Test_GenerateServerCertificate() {
+	certificate, err := NewCertificate(c.EasyRSA)
+	c.NoError(err)
+
+	err = certificate.GenerateServerCertificate("server")
+	c.NoError(err)
+
+	_, err = os.Stat(path.Join(c.EasyRSA.PKIDir, "private", "server.key"))
+	c.NoError(err)
+
+	_, err = os.Stat(path.Join(c.EasyRSA.PKIDir, "reqs", "server.req"))
+	c.NoError(err)
+}
+
+func (c *ServiceTestSuite) Test_GenerateServerCertificate_AlreadyExists() {
+	certificate, err := NewCertificate(c.EasyRSA)
+	c.NoError(err)
+
+	err = certificate.GenerateServerCertificate("server")
+	c.NoError(err)
+
+	err = certificate.GenerateServerCertificate("server")
+	c.EqualError(err, "server server certificate already exists")
+}

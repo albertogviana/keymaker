@@ -63,6 +63,7 @@ func (c *Certificate) initialize() error {
 	return nil
 }
 
+// GenerateServerCertificate creates the server certificate and key
 func (c *Certificate) GenerateServerCertificate(requestName string) error {
 	_, errPrivate := os.Stat(path.Join(c.easyRSA.PKIDir, "private", fmt.Sprintf("%s.key", requestName)))
 	_, errReqs := os.Stat(path.Join(c.easyRSA.PKIDir, "reqs", fmt.Sprintf("%s.req", requestName)))
@@ -71,7 +72,21 @@ func (c *Certificate) GenerateServerCertificate(requestName string) error {
 		return fmt.Errorf("%s server certificate already exists", requestName)
 	}
 
+	err := c.requestAndSign("server", requestName)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Certificate) requestAndSign(typeSign, requestName string) error {
 	err := c.easyRSA.GenReq(requestName)
+	if err != nil {
+		return err
+	}
+
+	err = c.easyRSA.SignReq(typeSign, requestName)
 	if err != nil {
 		return err
 	}

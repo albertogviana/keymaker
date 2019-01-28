@@ -87,6 +87,9 @@ func (c *ServiceTestSuite) Test_GenerateServerCertificate() {
 
 	_, err = os.Stat(path.Join(c.EasyRSA.PKIDir, "reqs", "server.req"))
 	c.NoError(err)
+
+	_, err = os.Stat(path.Join(c.EasyRSA.PKIDir, "issued", "server.crt"))
+	c.NoError(err)
 }
 
 func (c *ServiceTestSuite) Test_GenerateServerCertificate_AlreadyExists() {
